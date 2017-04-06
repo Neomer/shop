@@ -29,16 +29,17 @@ class Database {
         global $dbprefix;
         global $debug;
         
-        if (defined('__DEBUG__'))
+        //if (defined('__DEBUG__'))
         {   
             $st = time();
             $debug .= 'Database::exec() - SQL query: '.$query."\n";
         }        
         $result = pg_query($this->db, $query);
 
-        if (defined('__DEBUG__'))
+        //if (defined('__DEBUG__'))
         {   
             $debug .= 'Database::exec() - SQL query execution time: '.(time() - $st)."\n";
+            $debug .= 'Database::exec() - Result set ' . pg_num_rows($result) . " item(s)\n";
         }
         return $result;
     }

@@ -15,12 +15,13 @@ require_once('core/Database.class.php');
  */
 abstract class DBInterface {
     private $tablename = null;
-    protected $valid = false;
+    protected $valid;
 
 
     //put your code here
     public function __construct($tablename) {
         $this->tablename = $tablename;
+        $this->valid = false;
     }
     
     protected function load($id)
@@ -29,7 +30,7 @@ abstract class DBInterface {
         global $dbprefix;
         
         $result = $db->exec("select * from {$dbprefix}{$this->tablename} where id={$id} limit 1;");
-        $valid = pg_num_rows($result) > 0;
+        $this->valid = pg_num_rows($result) > 0;
 
         return $result;
     }
@@ -61,4 +62,5 @@ abstract class DBInterface {
     {
         return $this->valid;
     }
+    
 }
