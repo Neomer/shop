@@ -38,19 +38,22 @@ class Engine {
             $ssid = md5($_COOKIE['ssid']);
         }
         if ($ssid !== '') {
-            $this->user->get(array('ssid' => $ssid));
+            $this->user->select(array('ssid' => $ssid));
         }
         
         return $this->user;
     }
     
-    public function createUrlById($id) {
+    public function createUrlById($id, $query = array()) {
         $url = $_SERVER['REQUEST_SCHEME']
                 . '://'
                 . $_SERVER['SERVER_ADDR']
                 . (($_SERVER['SERVER_PORT'] != '80')?($_SERVER['SERVER_PORT']):'') 
                 . ($_SERVER['SCRIPT_NAME'])
                 . "?resource={$id}";
+        for ($i = 0; $i < count($query); $i++) {
+            $url .= '&'.array_keys($query)[$i].'='.array_values($query)[$i];
+        }
         return $url;
     }
     
@@ -72,13 +75,19 @@ class Engine {
         if ($res_id != 0) {
             $res = new Resource($res_id);
         }
-        if (!$res->isValid()) {
+        if ($res === null || !$res->isValid()) {
             $res = new Resource();
-            $res->get(array('def' => 1));
+            $res->select(array('def' => 1));
             if (!$res->isValid()) {
                 die('Default template not found!');
             }
         }
         return $res;
+    }
+    
+    public function debug($func, $msg) {
+        global $debug;
+        
+        $debug .= $func . ' - DEBUG ' . $msg;
     }
 }

@@ -3,7 +3,8 @@
     $error = '';
     $debug = '';
     $settings = '';
-    
+
+  
     $debug .= 'cookie: '.json_encode($_COOKIE, JSON_PRETTY_PRINT)."\n";
     $debug .= 'env: '.json_encode($_ENV, JSON_PRETTY_PRINT)."\n";
     $debug .= 'files: '.json_encode($_FILES, JSON_PRETTY_PRINT)."\n";
@@ -12,6 +13,7 @@
     $debug .= 'request: '.json_encode($_REQUEST, JSON_PRETTY_PRINT)."\n";
     $debug .= 'server: '.json_encode($_SERVER, JSON_PRETTY_PRINT)."\n";
 
+    
     require_once 'config/config.php';
     include_once 'core/smarty/libs/Smarty.class.php';
     
@@ -29,28 +31,28 @@
     require_once 'core/model/User.model.php';
     $engine = new Engine();
     $smarty->assign('engine', $engine);
-    $smarty->assign('menu', array(
-        array(
-            "path" => $engine->createUrlById(1),
-            "title" => "Главная"
-        ),
-        array(
-            "path" => $engine->createUrlById(2),
-            "title" => "Оплата"
-        ),
-        array(
-            "path" => $engine->createUrlById(3),
-            "title" => "Доставка"
-        ),
-        array(
-            "path" => $engine->createUrlById(4),
-            "title" => "Магазин"
-        ),
-        array(
-            "path" => $engine->createUrlById(5),
-            "title" => "Вход"
-        ),
-   ));
+        
+    require_once 'core/model/Resource.model.php';
+    $menu = array();
+    $res = new Resource();
+    $res->select(
+            array('menu_display' => 1), 
+            array('menu_index')
+    );
+    
+    if ($res->isValid())
+    {
+        do {
+            array_push($menu, 
+                    array(
+                        "title" => $res->getMenuTitle(),
+                        "path" => $engine->createUrlById($res->getId(), array('test'=> 'fdf'))
+                    ));
+        } while ($res->next());
+    }
+    
+    
+    $smarty->assign('menu', $menu);
     
     $sm_data = $smarty->createData();
     $usr = $engine->getUser();
@@ -60,7 +62,12 @@
     if (defined('__DEBUG__'))
         $smarty->assign('debug', $debug);
 
-    $smarty->assign('site_name', 'test site');
+    $output = '';
+    if ($resource->getParentId() != 0) {
+        $output = $smarty->fetch($template);
+        $resource = $engine->getResource( $resource->getParentId() );
+        $template = $resource->getTemplate();
+    }
     $smarty->assign('content', $output);
     $smarty->display($template);
 ?>

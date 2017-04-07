@@ -15,13 +15,19 @@ require_once('core/Database.class.php');
  */
 abstract class DBInterface {
     private $tablename = null;
+    private $row_idx = 0;
+    private $count = 0;
+    
     protected $valid;
-
+    protected $result = null;
 
     //put your code here
     public function __construct($tablename) {
         $this->tablename = $tablename;
         $this->valid = false;
+        $this->row_idx = 0;
+        $this->count = 0;
+        $this->result = null;
     }
     
     protected function load($id)
@@ -30,12 +36,14 @@ abstract class DBInterface {
         global $dbprefix;
         
         $result = $db->exec("select * from {$dbprefix}{$this->tablename} where id={$id} limit 1;");
-        $this->valid = pg_num_rows($result) > 0;
+        $this->count = pg_num_rows($result);
+        $this->valid = $this->count > 0;
+        $this->result = $result;
 
         return $result;
     }
     
-    protected function get($filter)
+    protected function select($filter, $order = '')
     {
         global $db;
         global $dbprefix;
@@ -52,8 +60,12 @@ abstract class DBInterface {
                 $ff .= $keys[$i]."='".$values[$i]."'";
         }
         
-        $result = $db->exec("select * from {$dbprefix}{$this->tablename} where {$ff} limit 1;");
-        $this->valid = pg_num_rows($result) > 0;
+        $result = $db->exec("select * from {$dbprefix}{$this->tablename} where {$ff}" 
+                . (($order !== '')?" order by " . implode(',', $order) : '')
+                . ";");
+        $this->count = pg_num_rows($result);
+        $this->valid = $this->count > 0;
+        $this->result = $result;
 
         return $result;
     }
@@ -63,4 +75,23 @@ abstract class DBInterface {
         return $this->valid;
     }
     
+    protected function next()
+    {
+        $this->row_idx++;
+        return $this->row_idx < $this->count;
+    }
+    
+    public function count() 
+    {
+        return $this->count;
+    }
+    
+    public function rowNumber()
+    {
+        return $this->row_idx;
+    }
+    
+    protected function resultSet() {
+        return $this->result;
+    }
 }

@@ -28,6 +28,8 @@ class Database {
     public function exec($query) {
         global $dbprefix;
         global $debug;
+        global $engine;
+        
         
         //if (defined('__DEBUG__'))
         {   

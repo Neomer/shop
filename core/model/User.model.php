@@ -48,12 +48,21 @@ class User extends DBInterface {
         }
     }
     
-    public function get($filter) {
-        $this->parseModel(parent::get($filter));
+    public function select($filter, $order = '') {
+        $this->parseModel(parent::select($filter, $order));
+    }
+    
+    public function next() {
+        $ret = parent::next();
+        $this->parseModel();
+        return $ret;
     }
 
-    private function parseModel($result) {
-        $assoc = pg_fetch_row($result);
+    private function parseModel($result = null) {
+        if ($result === null) {
+            $result = parent::resultSet();
+        }
+        $assoc = pg_fetch_row($result, parent::rowNumber());
         for ($i = 0; $i < count($assoc); $i++)
         {
             $field = pg_field_name($result, $i);
